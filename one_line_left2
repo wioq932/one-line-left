@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>One Line Left</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-amber-900 font-serif">
+
+  <!-- Header -->
+  <header class="bg-white/80 backdrop-blur-sm border-b border-amber-200/50 sticky top-0 z-10">
+    <div class="max-w-3xl mx-auto px-6 py-6 flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-amber-900">One Line Left</h1>
+        <p class="text-sm text-amber-600">One sentence. One day. One story.</p>
+      </div>
+      <button id="exportBtn" class="px-4 py-2 bg-white hover:bg-amber-50 border border-amber-200 text-amber-800 rounded-lg transition">Export</button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-3xl mx-auto px-6 py-10">
+    <section id="writeSection" class="bg-white rounded-2xl p-8 shadow-lg border border-amber-200/50 mb-8">
+      <h2 class="text-xl mb-3 font-semibold">Today's Line</h2>
+      <textarea id="todayLine" rows="3" placeholder="Write one sentence to continue your story..." class="w-full border border-amber-200 rounded-lg p-3 bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-400"></textarea>
+      <button id="saveBtn" class="mt-4 w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 rounded-lg font-medium hover:from-amber-600 hover:to-orange-600 transition">Save Line</button>
+      <p id="statusMsg" class="mt-3 text-center text-sm text-green-700 hidden">Saved successfully!</p>
+    </section>
+
+    <section id="recentSection" class="bg-white rounded-2xl p-8 shadow-lg border border-amber-200/50">
+      <h2 class="text-xl mb-4 font-semibold">Recent Lines</h2>
+      <div id="recentLines" class="space-y-4 text-amber-800"></div>
+    </section>
+  </main>
+
+  <script>
+    const todayLine = document.getElementById('todayLine');
+    const saveBtn = document.getElementById('saveBtn');
+    const statusMsg = document.getElementById('statusMsg');
+    const recentLines = document.getElementById('recentLines');
+    const exportBtn = document.getElementById('exportBtn');
+
+    // Load lines from localStorage
+    const loadLines = () => {
+      const lines = JSON.parse(localStorage.getItem('oneLineStory')) || [];
+      displayLines(lines);
+      return lines;
+    };
+
+    const displayLines = (lines) => {
+      recentLines.innerHTML = '';
+      if (lines.length === 0) {
+        recentLines.innerHTML = '<p class="text-amber-500 italic">No lines yet. Start your story today!</p>';
+      } else {
+        lines.slice(-5).reverse().forEach((line, i) => {
+          const div = document.createElement('div');
+          div.className = 'border-l-4 border-amber-300 pl-4';
+          div.innerHTML = `
+            <div class="text-xs text-amber-500 mb-1">${line.date}</div>
+            <p>"${line.content}"</p>
+          `;
+          recentLines.appendChild(div);
+        });
+      }
+    };
+
+    const saveLine = () => {
+      const content = todayLine.value.trim();
+      if (!content) return;
+
+      const lines = loadLines();
+      const today = new Date().toLocaleDateString('en-US');
+
+      // Prevent multiple lines in the same day
+      if (lines.some(line => line.date === today)) {
+        alert("You've already written today's line!");
+        return;
+      }
+
+      lines.push({ date: today, content });
+      localStorage.setItem('oneLineStory', JSON.stringify(lines));
+
+      todayLine.value = '';
+      statusMsg.classList.remove('hidden');
+      setTimeout(() => statusMsg.classList.add('hidden'), 2000);
+      displayLines(lines);
+    };
+
+    const exportStory = () => {
+      const lines = loadLines();
+      if (lines.length === 0) {
+        alert("No story to export yet!");
+        return;
+      }
+
+      const text = lines.map((l, i) => `${i + 1}. ${l.content}`).join('\n\n');
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `my-365-line-story.txt`;
+      a.click();
+    };
+
+    saveBtn.addEventListener('click', saveLine);
+    exportBtn.addEventListener('click', exportStory);
+
+    // Load on page start
+    loadLines();
+  </script>
+</body>
+</html>
