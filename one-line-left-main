@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>One Line Left — Dark Mode</title>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --panel:#0f1720;
+    --muted:#94a3b8;
+    --accent:#7c3aed;
+    --accent-2:#06b6d4;
+    --glow: 0 6px 20px rgba(124,58,237,0.12);
+    --card-glow: 0 10px 30px rgba(2,6,23,0.6);
+    --success:#10b981;
+    --danger:#ef4444;
+    color-scheme: dark;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#020305 0%, #071129 50%, #08121a 100%);font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+  .app {max-width:900px;margin:28px auto;padding:20px;display:grid;grid-template-columns:1fr;gap:18px;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:18px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:var(--glow);border:1px solid rgba(255,255,255,0.03);backdrop-filter: blur(6px);}
+  .brand{display:flex;gap:14px;align-items:center}
+  .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:700;box-shadow:0 6px 18px rgba(96,165,250,0.06)}
+  h1{color:#e6eef8;font-size:20px;margin:0}
+  .tag{color:var(--muted);font-size:13px}
+  .controls{display:flex;gap:10px;align-items:center}
+  button {background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
+  button.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;border:none;box-shadow:var(--glow)}
+  .grid{display:grid;grid-template-columns:1fr 420px;gap:18px;align-items:start}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);box-shadow:var(--card-glow)}
+  .center{text-align:center}
+  .big{font-size:34px;color: #e6eef8;font-weight:700}
+  .muted{color:var(--muted);font-size:13px}
+  .progress{height:12px;background:rgba(255,255,255,0.03);border-radius:999px;overflow:hidden}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%}
+  textarea{width:100%;min-height:120px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:#e6eef8;padding:12px;border-radius:10px;resize:none;font-size:15px}
+  .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:13px;color:var(--muted)}
+  .recent{display:flex;flex-direction:column;gap:10px;max-height:320px;overflow:auto;padding-right:6px}
+  .line{padding:10px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.02)}
+  .line .date{color:var(--muted);font-size:12px;margin-bottom:6px}
+  .small{font-size:13px;color:var(--muted)}
+  .hidden{display:none}
+  .flex{display:flex;gap:10px;align-items:center}
+  .fullstory{max-height:520px;overflow:auto;padding-right:6px}
+  footer{color:var(--muted);font-size:13px;text-align:center;margin-top:6px}
+  @media(max-width:880px){.grid{grid-template-columns:1fr;}.controls{flex-wrap:wrap;}}
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="logo">OL</div>
+        <div>
+          <h1>One Line Left</h1>
+          <div class="tag">One sentence · One day · One story</div>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="small" id="todayDisplay"></div>
+        <button id="toggleViewBtn" title="Toggle view">Full Story</button>
+        <button id="exportBtn" class="primary hidden">Export</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="card">
+        <div class="center" style="margin-bottom:10px">
+          <div class="big" id="linesCount">0</div>
+          <div class="muted">Lines Written</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div class="center">
+            <div class="big" id="daysRemaining">365</div>
+            <div class="muted">Days Remaining</div>
+          </div>
+          <div class="center">
+            <div class="big" id="streakCount">0</div>
+            <div class="muted">Current Streak</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <div class="meta"><div class="muted">Progress</div><div id="progressPercent" class="muted">0.0%</div></div>
+          <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+        </div>
+
+        <p id="motivation" class="muted" style="margin-bottom:12px">Every story begins with a single line.</p>
+
+        <div id="writePanel">
+          <div style="margin-bottom:10px" class="small">Line <strong id="nextLineNumber">#1</strong> of 365</div>
+          <textarea id="todayInput" maxlength="500" placeholder="Write one sentence to continue your story..."></textarea>
+          <div class="meta">
+            <div class="small" id="charCount">0/500</div>
+            <div class="small">Tip: one complete sentence</div>
+          </div>
+          <div style="margin-top:12px" class="flex">
+            <button id="saveBtn" class="primary">Commit Today's Line</button>
+            <button id="clearBtn" title="Clear all data">Reset</button>
+          </div>
+          <div id="doneNotice" class="hidden" style="margin-top:12px;padding:12px;border-radius:8px;background:linear-gradient(90deg, rgba(16,185,129,0.08), rgba(124,58,237,0.02));color:var(--success)">
+            Today's line saved. Return tomorrow to continue your story.
+          </div>
+        </div>
+
+      </section>
+
+      <aside class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <div class="muted small">Recent Lines</div>
+            <div style="font-weight:700;color:#e6eef8">Last entries</div>
+          </div>
+          <div class="small" id="storyCount">0/365</div>
+        </div>
+
+        <div id="recentList" class="recent">
+          <div class="muted">No lines yet — begin today.</div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button id="viewAllBtn" title="View full story">View Full Story</button>
+          <button id="exportSmallBtn" class="hidden">Export</button>
+        </div>
+
+        <div id="fullStory" class="fullstory hidden" style="margin-top:12px">
+          <!-- full story entries injected here -->
+        </div>
+      </aside>
+    </main>
+
+    <footer><small>Saved locally in your browser. No account needed.</small></footer>
+  </div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'oneLineLeft_v1';
+  const MAX_LINES = 365;
+
+  // Elements
+  const todayDisplay = document.getElementById('todayDisplay');
+  const toggleViewBtn = document.getElementById('toggleViewBtn');
+  const exportBtn = document.getElementById('exportBtn');
+  const exportSmallBtn = document.getElementById('exportSmallBtn');
+  const linesCountEl = document.getElementById('linesCount');
+  const daysRemainingEl = document.getElementById('daysRemaining');
+  const streakCountEl = document.getElementById('streakCount');
+  const progressBar = document.getElementById('progressBar');
+  const progressPercent = document.getElementById('progressPercent');
+  const motivation = document.getElementById('motivation');
+  const todayInput = document.getElementById('todayInput');
+  const charCount = document.getElementById('charCount');
+  const saveBtn = document.getElementById('saveBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const nextLineNumber = document.getElementById('nextLineNumber');
+  const recentList = document.getElementById('recentList');
+  const storyCount = document.getElementById('storyCount');
+  const doneNotice = document.getElementById('doneNotice');
+  const fullStoryEl = document.getElementById('fullStory');
+  const viewAllBtn = document.getElementById('viewAllBtn');
+
+  let lines = [];
+  let showFull = false;
+
+  // Helpers
+  function todayISO() {
+    const d = new Date();
+    return d.toISOString().split('T')[0]; // YYYY-MM-DD
+  }
+  function fmtDate(isoDate) {
+    const d = new Date(isoDate + 'T00:00:00');
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      lines = raw ? JSON.parse(raw) : [];
+      // ensure sorted ascending by date
+      lines.sort((a,b)=> new Date(a.date) - new Date(b.date));
+    } catch(e){ lines = []; }
+    render();
+  }
+
+  function saveLines() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
+  }
+
+  function hasWrittenToday() {
+    if(!lines.length) return false;
+    return lines.some(l => l.date === todayISO());
+  }
+
+  function calculateStreak() {
+    if(lines.length === 0) return 0;
+    // sort descending
+    const sorted = [...lines].sort((a,b)=> new Date(b.date) - new Date(a.date));
+    let streak = 0;
+    let cursor = new Date(); cursor.setHours(0,0,0,0);
+    for(let i=0;i<sorted.length;i++){
+      const d = new Date(sorted[i].date + 'T00:00:00');
+      d.setHours(0,0,0,0);
+      const diffDays = Math.round((cursor - d)/(1000*60*60*24));
+      if(diffDays === 0 || diffDays === streak) {
+        // this allows consecutive days: 0,1,2,... when streak increments
+        streak++;
+        cursor.setDate(cursor.getDate()-1);
+      } else break;
+    }
+    return streak;
+  }
+
+  function getMotivation(count) {
+    if (count === 0) return "Every story begins with a single line.";
+    if (count === 1) return "You've taken the first step. 364 more await.";
+    if (count < 7) return "A week shapes a beginning.";
+    if (count < 30) return "A month reveals a character.";
+    if (count < 90) return "Three months builds a world.";
+    if (count < 180) return "Halfway through, the story finds itself.";
+    if (count < 270) return "The third act is forming.";
+    if (count < 350) return "The ending is near. Every line matters more.";
+    if (count < 365) return "The final chapter awaits.";
+    return "Your story is complete. 365 days, one masterpiece.";
+  }
+
+  // UI render
+  function render() {
+    const count = lines.length;
+    linesCountEl.textContent = count;
+    daysRemainingEl.textContent = Math.max(MAX_LINES - count, 0);
+    streakCountEl.textContent = calculateStreak();
+    const progress = (count / MAX_LINES) * 100;
+    progressBar.style.width = progress + '%';
+    progressPercent.textContent = progress.toFixed(1) + '%';
+    motivation.textContent = getMotivation(count);
+    todayDisplay.textContent = new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+
+    nextLineNumber.textContent = '#' + (count + 1);
+    storyCount.textContent = count + '/' + MAX_LINES;
+
+    // recent list
+    recentList.innerHTML = '';
+    if(count === 0) {
+      recentList.innerHTML = '<div class="muted">No lines yet — begin today.</div>';
+    } else {
+      const recent = lines.slice(-6).reverse();
+      recent.forEach(l => {
+        const div = document.createElement('div'); div.className='line';
+        div.innerHTML = '<div class="date">'+ fmtDate(l.date) +'</div><div class="text">'+ escapeHtml(l.content) +'</div>';
+        recentList.appendChild(div);
+      });
+    }
+
+    // full story area
+    fullStoryEl.innerHTML = '';
+    if(count === 0) {
+      fullStoryEl.innerHTML = '<div class="muted">Your story has not begun yet.</div>';
+    } else {
+      lines.forEach((l,i)=>{
+        const item = document.createElement('div'); item.className='line';
+        item.innerHTML = '<div class="date">Day '+ (i+1) +' • '+ fmtDate(l.date) +'</div><div class="text">'+ escapeHtml(l.content) +'</div>';
+        fullStoryEl.appendChild(item);
+      });
+    }
+
+    // export buttons visibility
+    const exportVisible = count > 0;
+    if(exportVisible) exportBtn.classList.remove('hidden'), exportSmallBtn.classList.remove('hidden');
+    else exportBtn.classList.add('hidden'), exportSmallBtn.classList.add('hidden');
+
+    // show done notice if today's written
+    if(hasWrittenToday()) {
+      doneNotice.classList.remove('hidden');
+      document.getElementById('writePanel').querySelectorAll('textarea, button').forEach(el=> el.setAttribute('disabled','true'));
+    } else {
+      doneNotice.classList.add('hidden');
+      document.getElementById('writePanel').querySelectorAll('textarea, button').forEach(el=> el.removeAttribute('disabled'));
+    }
+  }
+
+  function escapeHtml(text){
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // actions
+  todayInput.addEventListener('input', ()=> {
+    charCount.textContent = todayInput.value.length + '/500';
+    saveBtn.disabled = todayInput.value.trim().length === 0;
+  });
+
+  saveBtn.addEventListener('click', ()=> {
+    const txt = todayInput.value.trim();
+    if(!txt) return;
+    if(hasWrittenToday()) {
+      alert("You've already written today's line.");
+      return;
+    }
+    const obj = { id: Date.now(), date: todayISO(), content: txt };
+    lines.push(obj);
+    saveLines();
+    todayInput.value='';
+    charCount.textContent = '0/500';
+    render();
+    // small animation: brief flash
+    doneNotice.classList.remove('hidden');
+    setTimeout(()=> doneNotice.classList.add('hidden'), 2500);
+  });
+
+  clearBtn.addEventListener('click', ()=> {
+    if(!confirm('Reset all saved lines? This cannot be undone.')) return;
+    lines = []; saveLines(); render();
+  });
+
+  toggleViewBtn.addEventListener('click', ()=> {
+    showFull = !showFull;
+    if(showFull){
+      fullStoryEl.classList.remove('hidden');
+      viewAllBtn.textContent = 'Hide Full Story';
+      toggleViewBtn.textContent = 'Today';
+    } else {
+      fullStoryEl.classList.add('hidden');
+      viewAllBtn.textContent = 'View Full Story';
+      toggleViewBtn.textContent = 'Full Story';
+    }
+  });
+
+  viewAllBtn.addEventListener('click', ()=> toggleViewBtn.click());
+
+  exportBtn.addEventListener('click', exportStory);
+  exportSmallBtn.addEventListener('click', exportStory);
+
+  function exportStory(){
+    if(lines.length === 0){ alert('No lines to export yet.'); return; }
+    const text = lines.map((l,i)=> (i+1)+'. '+ l.content).join('\n\n');
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'my-365-line-story.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // init
+  load();
+
+})();</script>
+</body>
+</html>
